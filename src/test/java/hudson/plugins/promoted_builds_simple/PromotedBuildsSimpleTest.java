@@ -43,6 +43,12 @@ import org.jvnet.hudson.test.HudsonTestCase;
  * @author Alan.Harder@sun.com
  */
 public class PromotedBuildsSimpleTest extends HudsonTestCase {
+    
+    @Override
+    protected void setUp() throws Exception {
+        System.setProperty("hudson.PluginStrategy", "hudson.ClassicPluginStrategy");
+        super.setUp();
+    }
 
     /**
      * Run a build, promoted it, verify badge shown on project page.
