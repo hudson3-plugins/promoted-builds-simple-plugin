@@ -28,25 +28,32 @@ import com.gargoylesoftware.htmlunit.WebRequestSettings;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import hudson.cli.CLI;
 import hudson.model.Cause.UserCause;
+import hudson.model.Descriptor;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Queue;
+import hudson.tasks.Builder;
+import hudson.tasks.Publisher;
+import hudson.tasks.Recorder;
+import hudson.util.DescribableList;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.httpclient.NameValuePair;
 import org.jvnet.hudson.test.CaptureEnvironmentBuilder;
 import org.jvnet.hudson.test.HudsonTestCase;
 
 /**
  * Test interaction of promoted-builds-simple plugin with Hudson core.
+ *
  * @author Alan.Harder@sun.com
  */
 public class PromotedBuildsSimpleTest extends HudsonTestCase {
-    
+
     @Override
     protected void setUp() throws Exception {
-        System.setProperty("hudson.PluginStrategy", "hudson.ClassicPluginStrategy");
         super.setUp();
     }
 
@@ -88,30 +95,45 @@ public class PromotedBuildsSimpleTest extends HudsonTestCase {
         form.getSelectByName("value").getOption(2).setSelected(true);
         submit(form);
         Queue.Item q = hudson.getQueue().getItem(job);
-        if (q != null) q.getFuture().get();
-        while (job.getLastBuild().isBuilding()) Thread.sleep(100);
+        if (q != null) {
+            q.getFuture().get();
+        }
+        while (job.getLastBuild().isBuilding()) {
+            Thread.sleep(100);
+        }
         assertEquals("3", ceb.getEnvVars().get("PROMO"));
-        job.getBuildersList().replace(ceb = new CaptureEnvironmentBuilder());
+        job.removeBuilder(ceb.getDescriptor());
+        job.addBuilder(ceb = new CaptureEnvironmentBuilder());
 
         // Run via HTTP POST (buildWithParameters)
         WebRequestSettings post = new WebRequestSettings(
-                new URL(getURL(), job.getUrl()+"/buildWithParameters"), HttpMethod.POST);
+                new URL(getURL(), job.getUrl() + "/buildWithParameters"), HttpMethod.POST);
         wc.addCrumb(post);
-        post.setRequestParameters(Arrays.asList(new NameValuePair("PROMO", "1"),
-                                                post.getRequestParameters().get(0)));
+        post.setRequestParameters(Arrays.asList(new NameValuePair("PROMO", "1"), new NameValuePair("delay", "0sec"),
+                post.getRequestParameters().get(0)));
         wc.getPage(post);
         q = hudson.getQueue().getItem(job);
-        if (q != null) q.getFuture().get();
-        while (job.getLastBuild().isBuilding()) Thread.sleep(100);
-        assertEquals("1", ceb.getEnvVars().get("PROMO"));
-        job.getBuildersList().replace(ceb = new CaptureEnvironmentBuilder());
+        if (q != null) {
+            q.getFuture().get();
+            while (job.getLastBuild().isBuilding()) {
+                Thread.sleep(100);
+            }
+            assertEquals("1", ceb.getEnvVars().get("PROMO"));
+            job.removeBuilder(ceb.getDescriptor());
+            job.addBuilder(ceb = new CaptureEnvironmentBuilder());
+        }
 
         // Run via CLI
-        CLI.main(new String[] {
-            "-s", getURL().toString(), "build", job.getFullName(), "-p", "PROMO=5" });
+        CLI.main(new String[]{
+            "-s", getURL().toString(), "build", job.getFullName(), "-p", "PROMO=5"});
         q = hudson.getQueue().getItem(job);
-        if (q != null) q.getFuture().get();
-        while (job.getLastBuild().isBuilding()) Thread.sleep(100);
-        assertEquals("5", ceb.getEnvVars().get("PROMO"));
+        if (q != null) {
+            q.getFuture().get();
+            while (job.getLastBuild().isBuilding()) {
+                Thread.sleep(100);
+            }
+            assertEquals("5", ceb.getEnvVars().get("PROMO"));
+        }
     }
+
 }

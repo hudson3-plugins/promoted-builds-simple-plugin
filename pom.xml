@@ -10,23 +10,34 @@
     <artifactId>promoted-builds-simple</artifactId>
     <packaging>hpi</packaging>
     <name>Promoted Builds (Simple)</name>
-    <version>1.7-h-1-SNAPSHOT</version>
+    <version>1.7-h-1</version>
     <url>http://wiki.hudson-ci.org/display/HUDSON/Promoted+Builds+Simple+Plugin</url>
 
     <developers>
-      <developer>
-        <id>mindless</id>
-        <name>Alan Harder</name>
-        <email>alan.harder@sun.com</email>
-      </developer>
+        <developer>
+            <id>mindless</id>
+            <name>Alan Harder</name>
+            <email>alan.harder@sun.com</email>
+        </developer>
     </developers>
 
     <dependencies>
-      <dependency>
-        <groupId>org.hudsonci.plugins</groupId>
-        <artifactId>copyartifact</artifactId>
-        <version>1.25-h-3</version>
-        <optional>true</optional>
-      </dependency>
+        <dependency>
+            <groupId>org.hudsonci.plugins</groupId>
+            <artifactId>copyartifact</artifactId>
+            <version>1.25-h-3</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <artifactId>hudson-test-framework</artifactId>
+            <groupId>org.eclipse.hudson</groupId>
+            <type>jar</type>
+            <exclusions>
+                <exclusion>
+                    <artifactId>hudson-maven-embedder</artifactId>
+                    <groupId>org.jvnet.hudson</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 </project>
